@@ -144,8 +144,26 @@ export default function App() {
 
               return <Ionicons name={iconName} size={size} color={color} />;
             },
-            tabBarActiveTintColor: 'black',
+            tabBarActiveTintColor: 'white',
             tabBarInactiveTintColor: 'gray',
+            tabBarStyle: {
+              backgroundColor: '#333',
+              borderTopWidth: 1,
+              borderTopColor: 'gray'
+            },
+            tabBarItemStyle: {
+              fontSize: 12
+            },
+            headerStyle: {
+              backgroundColor: '#333',
+              borderBottomWidth: 1,
+              borderBottomColor: 'gray',
+            },
+            headerTitleStyle: {
+              color: 'white',
+              fontSize: 24,
+              textAlign: 'center'
+            }
           })}
         >
         <Tab.Screen name='Compass' component={DirectorScreen} 
