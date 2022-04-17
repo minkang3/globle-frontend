@@ -11,6 +11,7 @@ import { useEffect, useState } from 'react';
 import { Magnetometer } from 'expo-sensors';
 
 const DESTINATION_DEGREE = 0;
+const UPDATE_INTERVAL = 1000;
 
 function DirectorScreen() {
   const [deviceRotation, setDeviceRotation] = useState({
@@ -26,7 +27,7 @@ function DirectorScreen() {
     fontSize: 200
   });
 
-  // Magnetometer.setUpdateInterval(2000);
+  // Magnetometer.setUpdateInterval(UPDATE_INTERVAL);
   // Magnetometer.addListener(result => {
   //   const _angle = calcAngle(result);
   //   const _degree = calcDegree(_angle);
@@ -100,33 +101,33 @@ const Tab = createBottomTabNavigator();
 
 export default function App() {
 
-  let USER_LON;
-  let USER_LAT;
+  // let USER_LON;
+  // let USER_LAT;
 
-  (async () => {
-    const response = await getUserLocation();
-    USER_LAT = response[0];
-    USER_LON = response[1];
-  })();
+  // (async () => {
+  //   const response = await getUserLocation();
+  //   USER_LAT = response[0];
+  //   USER_LON = response[1];
+  // })();
 
-  const config = {
-    url: `http://localhost:8000/get-getaway?latitude=33.8&longitude=-118.31`, // if not in LA
-    // url: `http://localhost:8000/get-getaway?latitude=${USER_LAT}&longitude=${USER_LON}`,
-    method: 'get'
-  }
+  // const config = {
+  //   url: `http://localhost:8000/get-getaway?latitude=33.8&longitude=-118.31`, // if not in LA
+  //   // url: `http://localhost:8000/get-getaway?latitude=${USER_LAT}&longitude=${USER_LON}`,
+  //   method: 'get'
+  // }
 
-  let GET_AWAY_LAT;
-  let GET_AWAY_LON;
+  // let GET_AWAY_LAT;
+  // let GET_AWAY_LON;
 
-  (async () => { await axios(config)
-    .then(res => {
-        GET_AWAY_LAT = res.data.data[0];
-        GET_AWAY_LON = res.data.data[1];
-    })
-    .catch(err => {
-        console.error(err);
-    });
-  })();
+  // (async () => { await axios(config)
+  //   .then(res => {
+  //       GET_AWAY_LAT = res.data.data[0];
+  //       GET_AWAY_LON = res.data.data[1];
+  //   })
+  //   .catch(err => {
+  //       console.error(err);
+  //   });
+  // })();
 
   return (
     <NavigationContainer>
