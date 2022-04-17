@@ -71,10 +71,38 @@ function DirectorScreen() {
 }
 
 function PictureScreen() {
+  const [glat, setGLat] = useState(0);
+  const [glon, setGLon] = useState(0);
+  useEffect(async () => {
+    const loc = await getUserLocation();
+    const config = {
+      url: `http://localhost:8000/get-getaway?latitude=33.8&longitude=-118.31`, // if not in LA
+      // url: `http://localhost:8000/get-getaway?latitude=${USER_LAT}&longitude=${USER_LON}`,
+      method: 'get'
+    }
+    let res = await axios(config);
+    const tempLat = res.data.data[0];
+    const tempLon = res.data.data[1];
+    console.log("Getaway location: " + tempLat + " " + tempLon);
+
+    setGLat(tempLat);
+    setGLon(tempLon);
+  }, []);
+
+  console.log("LOL?", glat,glon);
   return (
     <View style={styles.container}>
       <Text style={styles.subtitle}>Your clue image.</Text>
-      <Image source={img} style={styles.clueImage}></Image>
+      <Image
+      source={{
+        uri: `https://maps.googleapis.com/maps/api/streetview?size=400x400&location=${glat},${glon}&fov=80&heading=70&pitch=0&key=${GOOGLE_API_KEY}&radius=1000`,
+        method: 'GET',
+        headers: {
+          Pragma: 'no-cache'
+        }
+      }}
+      style={{ width: 400, height: 400 }}
+      />
     </View>
   )
 }
@@ -136,11 +164,6 @@ export default function App() {
 
     setGLat(tempLat);
     setGLon(tempLon);
-
-    res = await getStreetView(tempLat, tempLon);
-    console.log(res);
-
-    setImg(res);
   }, []);
 
   // on every second, update current location
