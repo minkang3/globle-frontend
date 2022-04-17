@@ -56,8 +56,8 @@ export default function App() {
   })();
 
   const config = {
-    // url: `http://localhost:8000/get-getaway?latitude=33.8&longitude=-118.31`, // if not in LA
-    url: `http://localhost:8000/get-getaway?latitude=${USER_LAT}&longitude=${USER_LON}`,
+    url: `http://localhost:8000/get-getaway?latitude=33.8&longitude=-118.31`, // if not in LA
+    // url: `http://localhost:8000/get-getaway?latitude=${USER_LAT}&longitude=${USER_LON}`,
     method: 'get'
   }
 
