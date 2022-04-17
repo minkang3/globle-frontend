@@ -35,21 +35,25 @@ function DirectorScreen() {
   const [cooldown, setCooldown] = useState(0);
   if (!cooldownStarted) {
     cooldownStarted = true;
+    console.log('runned');
     setInterval(() => {
       if (cooldown > 0) {
         setCooldown(prev => prev - 1);
       }
     }, 1000);
+    Magnetometer.setUpdateInterval(UPDATE_INTERVAL);
+    Magnetometer.addListener(data => {
+      console.log('updating...');
+      setDeviceRotation(data);
+    });
   }
 
   const updateAngle = async () => {
     console.log('updating...');
-    const result = await getMagnetometerResults();
-    console.log(result);
-    const _angle = calcAngle(result);
+    const _angle = calcAngle(deviceRotation);
     const _degree = calcDegree(_angle);
 
-    setDeviceRotation(result);
+    setDeviceRotation(deviceRotation);
     setAngle(_angle);
     setArrowStyle({
       transform: [{rotate: `${-_degree + DESTINATION_DEGREE}deg`}],
@@ -57,10 +61,10 @@ function DirectorScreen() {
     });
   }
 
-  const calcAngle = (magnetometer) => {
+  const calcAngle = (magReading) => {
     let angle = 0;
-    if (magnetometer) {
-      let { x, y, z } = magnetometer;
+    if (magReading) {
+      let { x, y, z } = magReading;
       if (Math.atan2(y, x) >= 0) {
         angle = Math.atan2(y, x) * (180 / Math.PI);
       } else {
@@ -70,8 +74,8 @@ function DirectorScreen() {
     return Math.round(angle);
   };
 
-  const calcDegree = (magnetometer) => {
-    return magnetometer - 90 >= 0 ? magnetometer - 90 : magnetometer + 271;
+  const calcDegree = (magReading) => {
+    return magReading - 90 >= 0 ? magReading - 90 : magReading + 271;
   };
 
   return (
@@ -218,13 +222,4 @@ function calcDirectionToDestination(u_lat, u_long, dest_lat, dest_long) {
   else if (delta_x > 0 && delta_y < 0) { phi = 270; }
 
   let theta = Math.atan(Math.abs(delta_y) / Math.abs(delta_x)) + phi;
-}
-
-async function getMagnetometerResults() {
-  let results;
-  await Magnetometer.addListener(res => {
-    results = res;
-  });
-  Magnetometer.removeAllListeners();
-  return results;
 }
