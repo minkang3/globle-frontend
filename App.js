@@ -3,6 +3,7 @@ import axios from 'axios';
 import { StyleSheet, Text, View, Image } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import getStreetRequest from './requests/getStreetRequest';
 import styles from './style'
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { GOOGLE_API_KEY } from '@env'
@@ -57,10 +58,6 @@ function DirectorScreen() {
     return magnetometer - 90 >= 0 ? magnetometer - 90 : magnetometer + 271;
   };
 
-  useEffect(() => {
-
-  });
-
   return (
     <View style={styles.container}>
       <Text style={styles.toolTip} >Device must be horizontally level in order to show the correct direction.</Text>
@@ -77,7 +74,7 @@ function PictureScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.subtitle}>Your clue image.</Text>
-      <Image source={require('./assets/default_image.jpeg')} style={styles.clueImage}></Image>
+      <Image source={img} style={styles.clueImage}></Image>
     </View>
   )
 }
@@ -103,31 +100,77 @@ export default function App() {
 
   // let USER_LON;
   // let USER_LAT;
+  // let GETAWAY_LAT;
+  // let GETAWAY_LON;
+  // let IMG;
+  const [glat, setGLat] = useState(0);
+  const [glon, setGLon] = useState(0);
+  const [ulat, setULat] = useState(0);
+  const [ulon, setULon] = useState(0);
+  const [img, setImg] = useState({});
+
+  const config = {
+    url: `http://localhost:8000/get-getaway?latitude=33.8&longitude=-118.31`, // if not in LA
+    // url: `http://localhost:8000/get-getaway?latitude=${USER_LAT}&longitude=${USER_LON}`,
+    method: 'get'
+  }
 
   // (async () => {
-  //   const response = await getUserLocation();
-  //   USER_LAT = response[0];
-  //   USER_LON = response[1];
+  //   const uloc = await getUserLocation();
+  //   USER_LAT = uloc[0];
+  //   USER_LON = uloc[1];
   // })();
 
-  // const config = {
-  //   url: `http://localhost:8000/get-getaway?latitude=33.8&longitude=-118.31`, // if not in LA
-  //   // url: `http://localhost:8000/get-getaway?latitude=${USER_LAT}&longitude=${USER_LON}`,
-  //   method: 'get'
-  // }
+  //on initial load
+  useEffect(async () => {
+    const loc = await getUserLocation();
+    const config = {
+      url: `http://localhost:8000/get-getaway?latitude=33.8&longitude=-118.31`, // if not in LA
+      // url: `http://localhost:8000/get-getaway?latitude=${USER_LAT}&longitude=${USER_LON}`,
+      method: 'get'
+    }
+    let res = await axios(config);
+    const tempLat = res.data.data[0];
+    const tempLon = res.data.data[1];
+    console.log("Getaway location: " + tempLat + " " + tempLon);
 
-  // let GET_AWAY_LAT;
-  // let GET_AWAY_LON;
+    setGLat(tempLat);
+    setGLon(tempLon);
+
+    res = await getStreetView(tempLat, tempLon);
+    console.log(res);
+
+    setImg(res);
+  }, []);
+
+  // on every second, update current location
+  useEffect(() => { 
+    const intervalID = setInterval(async () => {
+      const loc = await getUserLocation();
+      setULat(loc[0]);
+      setULon(loc[1]);
+    }, 1000);
+
+    return () => clearInterval(intervalID);
+
+  }, [ulat, ulon])
+
+  // useEffect( async () => { 
+  //   const loc = await getUserLocation();
+  //   setULat(loc[0]);
+  //   setULon(loc[1]);
+  // }, [])
 
   // (async () => { await axios(config)
   //   .then(res => {
-  //       GET_AWAY_LAT = res.data.data[0];
-  //       GET_AWAY_LON = res.data.data[1];
+  //       GETAWAY_LAT = res.data.data[0];
+  //       GETAWAY_LON = res.data.data[1];
+
   //   })
   //   .catch(err => {
   //       console.error(err);
   //   });
-  // })();
+  // })(); 
 
   return (
     <NavigationContainer>
