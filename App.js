@@ -21,6 +21,8 @@ const COOLDOWN = 5;
 
 let cooldownStarted = false;
 
+console.log('api-key: ' + GOOGLE_API_KEY);
+
 function DirectorScreen() {
   const [deviceRotation, setDeviceRotation] = useState({
     x: 0,
@@ -43,14 +45,15 @@ function DirectorScreen() {
       }
     }, 1000);
     Magnetometer.setUpdateInterval(UPDATE_INTERVAL);
+    Magnetometer.removeAllListeners();
     Magnetometer.addListener(data => {
-      console.log('updating...');
+      // console.log('updating...');
       setDeviceRotation(data);
     });
   }
 
   const updateAngle = async () => {
-    console.log('updating...');
+    // console.log('updating...');
     const _angle = calcAngle(deviceRotation);
     const _degree = calcDegree(_angle);
 
@@ -86,7 +89,7 @@ function DirectorScreen() {
         <Text style={arrowStyle}>^</Text>
       </View>
       <Text style={styles.subtitle} >Distance:</Text>
-      <Text style={styles.primary}>00.00m</Text>
+      <Text style={styles.primary}>{calcDistance(33.8, -118.31, D_LAT, D_LONG).toFixed(0)}m</Text>
       <Pressable style={styles.refreshButton} onPress={() => {setCooldown(COOLDOWN); updateAngle()}} disabled={cooldown > 0} >
         <Text style={cooldown > 0 ? styles.disabledButtonText : styles.buttonText}>{cooldown > 0 ? cooldown : 'Refresh'}</Text>
       </Pressable>
@@ -95,8 +98,8 @@ function DirectorScreen() {
 }
 
 function PictureScreen() {
-  const [glat, setGLat] = useState(0);
-  const [glon, setGLon] = useState(0);
+  const [glat, setGLat] = useState(33.9);
+  const [glon, setGLon] = useState(-118.31);
   useEffect(async () => {
     const loc = await getUserLocation();
     const config = {
@@ -116,16 +119,15 @@ function PictureScreen() {
   console.log("LOL?", glat,glon);
   return (
     <View style={styles.container}>
-      <Text style={styles.subtitle}>Your clue image.</Text>
       <Image
       source={{
-        uri: `https://maps.googleapis.com/maps/api/streetview?size=400x400&location=${glat},${glon}&fov=80&heading=70&pitch=0&key=${GOOGLE_API_KEY}&radius=1000`,
+        uri: `https://maps.googleapis.com/maps/api/streetview?size=300x300&location=${glat},${glon}&fov=80&heading=70&pitch=0&key=${GOOGLE_API_KEY}&radius=2000`,
         method: 'GET',
         headers: {
           Pragma: 'no-cache'
         }
       }}
-      style={{ width: 400, height: 400 }}
+      style={{ width: 300, height: 300 }}
       />
       <Text style={styles.questText}>This picture, pulled from Google Maps StreetView, is your visual clue of the day. The hunt is on!</Text>
     </View>
