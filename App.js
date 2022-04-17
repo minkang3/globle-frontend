@@ -6,7 +6,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import getStreetRequest from './requests/getStreetRequest';
 import styles from './style'
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { GOOGLE_API_KEY } from '@env'
+import { GOOGLE_API_KEY , GOOGLE_URL} from '@env'
 import { useEffect, useState } from 'react';
 
 import { Magnetometer } from 'expo-sensors';
@@ -124,9 +124,11 @@ export default function App() {
   //on initial load
   useEffect(async () => {
     const loc = await getUserLocation();
-    const config = {
+
+    //request to the backend for our local getaway
+    let config = {
       url: `http://localhost:8000/get-getaway?latitude=33.8&longitude=-118.31`, // if not in LA
-      // url: `http://localhost:8000/get-getaway?latitude=${USER_LAT}&longitude=${USER_LON}`,
+      // url: `http://localhost:8000/get-getaway?latitude=${loc[0]}&longitude=${loc[1]}`,
       method: 'get'
     }
     let res = await axios(config);
@@ -137,10 +139,17 @@ export default function App() {
     setGLat(tempLat);
     setGLon(tempLon);
 
-    res = await getStreetView(tempLat, tempLon);
-    console.log(res);
+    //request to our backend for the image
+    config = {
+      // url: `http://localhost:8000/picture?latitude=33.8&longitude=-118.31`, // if not in LA
+      url: `http://localhost:8000/picture?latitude=${tempLat}&longitude=${tempLon}`,
+      method: 'get'
+    }
 
-    setImg(res);
+    res = await axios(config);
+    console.log(res.data.data);
+
+    setImg(res.data.data);
   }, []);
 
   // on every second, update current location
