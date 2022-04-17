@@ -6,14 +6,66 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import styles from './style'
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { GOOGLE_API_KEY } from '@env'
+import { useEffect, useState } from 'react';
+
+import { Magnetometer } from 'expo-sensors';
+
+const DESTINATION_DEGREE = 0;
 
 function DirectorScreen() {
-  startCompass();
-  window.navigator.geolocation.getCurrentPosition(locationHandler);
-  
+  const [deviceRotation, setDeviceRotation] = useState({
+    x: 0,
+    y: 0,
+    z: 0
+  });
+  const [angle, setAngle] = useState(0);
+  const [direction, setDirection] = useState('X');
+  const [antiDirection, setAntiDirection] = useState(0);
+  const [arrowStyle, setArrowStyle] = useState({
+    transform: [{rotate: `0deg`}],
+    fontSize: 200
+  });
+
+  // Magnetometer.setUpdateInterval(2000);
+  // Magnetometer.addListener(result => {
+  //   const _angle = calcAngle(result);
+  //   const _degree = calcDegree(_angle);
+
+  //   setDeviceRotation(result);
+  //   setAngle(_angle);
+  //   setArrowStyle({
+  //     transform: [{rotate: `${-_degree + DESTINATION_DEGREE}deg`}],
+  //     fontSize: 200
+  //   });
+  // });
+
+  const calcAngle = (magnetometer) => {
+    let angle = 0;
+    if (magnetometer) {
+      let { x, y, z } = magnetometer;
+      if (Math.atan2(y, x) >= 0) {
+        angle = Math.atan2(y, x) * (180 / Math.PI);
+      } else {
+        angle = (Math.atan2(y, x) + 2 * Math.PI) * (180 / Math.PI);
+      }
+    }
+    return Math.round(angle);
+  };
+
+  const calcDegree = (magnetometer) => {
+    return magnetometer - 90 >= 0 ? magnetometer - 90 : magnetometer + 271;
+  };
+
+  useEffect(() => {
+
+  });
+
   return (
     <View style={styles.container}>
-      <Image style={styles.arrow} source={require('./assets/arrow.png')} />
+      <Text style={styles.toolTip} >Device must be horizontally level in order to show the correct direction.</Text>
+      <View style={styles.arrowContainer}>
+        <Text style={arrowStyle}>^</Text>
+      </View>
       <Text style={styles.subtitle} >Distance:</Text>
       <Text style={styles.primary}>00.00m</Text>
     </View>
@@ -23,6 +75,8 @@ function DirectorScreen() {
 function PictureScreen() {
   return (
     <View style={styles.container}>
+      <Text style={styles.subtitle}>Your clue image.</Text>
+      <Image source={require('./assets/default_image.jpeg')} style={styles.clueImage}></Image>
     </View>
   )
 }
@@ -58,24 +112,24 @@ export default function App() {
             tabBarIcon: ({ focused, color, size }) => {
               let iconName;
 
-              if (route.name === 'Director') {
+              if (route.name === 'Compass') {
                 iconName = focused ? 'compass' : 'compass-outline'
-              } else if (route.name === 'Image') {
+              } else if (route.name === 'Clue') {
                 iconName = focused ? 'image' : 'image-outline'
               }
 
               return <Ionicons name={iconName} size={size} color={color} />;
             },
             tabBarActiveTintColor: 'black',
-            tabBarInactiveTintColor: 'gray'
+            tabBarInactiveTintColor: 'gray',
           })}
         >
-        <Tab.Screen name='Director' component={DirectorScreen} 
-          options={({ navigation }) => ({
+        <Tab.Screen name='Compass' component={DirectorScreen} 
+          options={{
 
-          })}
+          }}
         />
-        <Tab.Screen name="Image" component={PictureScreen} 
+        <Tab.Screen name="Clue" component={PictureScreen} 
           options={({ navigation }) => ({
 
           })}
@@ -83,83 +137,4 @@ export default function App() {
       </Tab.Navigator>
     </NavigationContainer>
   );
-}
-
-// const compassCircle = 0;
-// const startBtn = 0;
-// const myPoint = 0;
-
-let compass;
-const isIOS = !(
-  Navigator.userAgent.match(/(iPod|iPhone|iPad)/)&&
-  Navigator.userAgent.match(/AppleWebKit/)
-);
-
-// function init() {
-//   startBtn.addEventListener("click", startCompass);
-//   navigator.geolocation.getCurrentPosition(locationHandler);
-// }
-
-function handler(e) {
-  compass = e.webkitCompassHeading || Math.abs(e.alpha - 360);
-  compassCircle.style.transform = `translate(-50%, -50%) rotate(${-compass}deg)`;
-
-  // ±15 degree
-  if (
-    (pointDegree < Math.abs(compass) && pointDegree + 15 > Math.abs(compass)) ||
-    pointDegree > Math.abs(compass + 15) ||
-    pointDegree < Math.abs(compass)
-  ) {
-    myPoint.style.opacity = 0;
-  } else if (pointDegree) {
-    myPoint.style.opacity = 1;
-  }
-}
-
-function startCompass() {
-  if (isIOS) {
-    DeviceOrientationEvent.requestPermission()
-      .then(response => {
-        if (response === "granted") {
-          window.addEventListener("deviceorientation", handler, true);
-        } else {
-          alert("has to be allowed");
-        }
-      })
-      .catch(() => alert("not supported"));
-  } else {
-  window.addEventListener("deviceorientationabsolute", handler, true);
-  }
-}
-
-let pointDegree;
-
-function locationHandler(position) {
-  const {latitude, longitude } = position.coords;
-  pointDegree = calcDegreeToPoint(latitude, longitude);
-  
-  if (pointDegree < 0) {
-    pointDegree = pointDegree + 360;
-  }
-  console.log(pointDegree);
-}
-
-function calcDegreeToPoint(latitude, longitude) {
-  const point = {
-    lat: 33.9,
-    lon: -118.3
-  };
-
-  const phiK = (point.lat * Math.PI) / 180.0;
-  const lambdaK = (point.lon * Math.PI) / 180.0;
-  const phi = (latitude * Math.PI) / 180.0;
-  const lambda = (longitude * Math.PI) / 180.0;
-  const psi =
-    (180.0 / Math.PI) *
-    Math.atan2(
-      Math.sin(lambdaK - lambda),
-      Math.cos(phi) * Math.tan(phiK) -
-        Math.sin(phi) * Math.cos(lambdaK - lambda)
-    );
-  return Math.round(psi);
 }

@@ -1,5 +1,7 @@
 import { StyleSheet } from "react-native";
 
+const GRAY = '#999';
+
 export default StyleSheet.create({
     container: {
         flex: 1,
@@ -14,15 +16,30 @@ export default StyleSheet.create({
         fontSize: 48
     },
     subtitle: {
-        fontSize: 16
+        fontSize: 16,
+        color: GRAY
     },
-    arrow: {
-        transform: [{rotate: '-90deg'}],
-        borderColor: 'black',
+    arrowContainer: {
+        height: 215,
+        width: 215,
         borderWidth: 2,
+        borderRadius: 215,
+        alignItems: 'center',
+        justifyContent: 'center',
         marginBottom: 100,
-        height:  200,
+        marginTop: 10
+    },
+    toolTip: {
+        fontSize: 16,
+        textAlign: "center",
         width: 200,
-        borderRadius: 100
+        color: GRAY
+    },
+    clueImage: {
+        width: 200,
+        height: 200,
+        margin: 10,
+        borderWidth: 1,
+        borderColor: 'black'
     }
 })
