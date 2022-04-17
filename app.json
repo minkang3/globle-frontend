@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "gobble-frontend",
-    "slug": "gobble-frontend",
+    "name": "globle-frontend",
+    "slug": "globle-frontend",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
