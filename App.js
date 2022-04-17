@@ -46,9 +46,32 @@ const Tab = createBottomTabNavigator();
 
 export default function App() {
 
+  let USER_LON;
+  let USER_LAT;
+
   (async () => {
     const response = await getUserLocation();
-    console.log("lon + lat:", response);
+    USER_LAT = response[0];
+    USER_LON = response[1];
+  })();
+
+  const config = {
+    // url: `http://localhost:8000/get-getaway?latitude=33.8&longitude=-118.31`, // if not in LA
+    url: `http://localhost:8000/get-getaway?latitude=${USER_LAT}&longitude=${USER_LON}`,
+    method: 'get'
+  }
+
+  let GET_AWAY_LAT;
+  let GET_AWAY_LON;
+
+  (async () => { await axios(config)
+    .then(res => {
+        GET_AWAY_LAT = res.data.data[0];
+        GET_AWAY_LON = res.data.data[1];
+    })
+    .catch(err => {
+        console.error(err);
+    });
   })();
 
   return (
@@ -90,10 +113,11 @@ export default function App() {
 // const myPoint = 0;
 
 let compass;
-const isIOS = !(
-  Navigator.userAgent.match(/(iPod|iPhone|iPad)/)&&
-  Navigator.userAgent.match(/AppleWebKit/)
-);
+const isIOS = false;
+// const isIOS = !(
+//   Navigator.userAgent.match(/(iPod|iPhone|iPad)/)&&
+//   Navigator.userAgent.match(/AppleWebKit/)
+// );
 
 // function init() {
 //   startBtn.addEventListener("click", startCompass);
