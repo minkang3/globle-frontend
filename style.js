@@ -16,7 +16,7 @@ export default StyleSheet.create({
         fontSize: 48
     },
     subtitle: {
-        fontSize: 16,
+        fontSize: 18,
         color: GRAY
     },
     arrowContainer: {
@@ -26,11 +26,11 @@ export default StyleSheet.create({
         borderRadius: 215,
         alignItems: 'center',
         justifyContent: 'center',
-        marginBottom: 100,
+        marginBottom: 30,
         marginTop: 10
     },
     toolTip: {
-        fontSize: 16,
+        fontSize: 18,
         textAlign: "center",
         width: 200,
         color: GRAY
@@ -40,6 +40,34 @@ export default StyleSheet.create({
         height: 200,
         margin: 10,
         borderWidth: 1,
-        borderColor: 'black'
+        borderColor: 'gray',
+        borderRadius: 5
+    },
+    questText: {
+        textAlign: 'center',
+        width: 200,
+        fontSize: 18,
+        color: GRAY,
+        margin: 10
+    },
+    refreshButton: {
+        borderWidth: 1,
+        padding: 10,
+        borderColor: GRAY,
+        height: 60,
+        width: 150,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: 30,
+        borderRadius: 4
+    },
+    buttonText: {
+        color: '#007AFF',
+        fontSize: 24,
+        fontWeight: 'bold'
+    },
+    disabledButtonText: {
+        color: GRAY,
+        fontSize: 24,
     }
 })
