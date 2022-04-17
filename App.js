@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import axios from 'axios';
-import { StyleSheet, Text, View, Image } from 'react-native';
+import { StyleSheet, Text, View, Image, Button } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import getStreetRequest from './requests/getStreetRequest';
@@ -10,9 +10,16 @@ import { GOOGLE_API_KEY , GOOGLE_URL} from '@env'
 import { useEffect, useState } from 'react';
 
 import { Magnetometer } from 'expo-sensors';
+import Pressable from 'react-native/Libraries/Components/Pressable/Pressable';
 
 const DESTINATION_DEGREE = 0;
 const UPDATE_INTERVAL = 1000;
+const IMAGE_PATH = './assets/default_image.png';
+const D_LAT = 120.12153;
+const D_LONG = 40.124992;
+const COOLDOWN = 5;
+
+let cooldownStarted = false;
 
 function DirectorScreen() {
   const [deviceRotation, setDeviceRotation] = useState({
@@ -21,30 +28,44 @@ function DirectorScreen() {
     z: 0
   });
   const [angle, setAngle] = useState(0);
-  const [direction, setDirection] = useState('X');
-  const [antiDirection, setAntiDirection] = useState(0);
   const [arrowStyle, setArrowStyle] = useState({
     transform: [{rotate: `0deg`}],
-    fontSize: 200
+    fontSize: 200,
   });
 
-  // Magnetometer.setUpdateInterval(UPDATE_INTERVAL);
-  // Magnetometer.addListener(result => {
-  //   const _angle = calcAngle(result);
-  //   const _degree = calcDegree(_angle);
+  const [cooldown, setCooldown] = useState(0);
+  if (!cooldownStarted) {
+    cooldownStarted = true;
+    console.log('runned');
+    setInterval(() => {
+      if (cooldown > 0) {
+        setCooldown(prev => prev - 1);
+      }
+    }, 1000);
+    Magnetometer.setUpdateInterval(UPDATE_INTERVAL);
+    Magnetometer.addListener(data => {
+      console.log('updating...');
+      setDeviceRotation(data);
+    });
+  }
 
-  //   setDeviceRotation(result);
-  //   setAngle(_angle);
-  //   setArrowStyle({
-  //     transform: [{rotate: `${-_degree + DESTINATION_DEGREE}deg`}],
-  //     fontSize: 200
-  //   });
-  // });
+  const updateAngle = async () => {
+    console.log('updating...');
+    const _angle = calcAngle(deviceRotation);
+    const _degree = calcDegree(_angle);
 
-  const calcAngle = (magnetometer) => {
+    setDeviceRotation(deviceRotation);
+    setAngle(_angle);
+    setArrowStyle({
+      transform: [{rotate: `${-_degree + DESTINATION_DEGREE}deg`}],
+      fontSize: 200
+    });
+  }
+
+  const calcAngle = (magReading) => {
     let angle = 0;
-    if (magnetometer) {
-      let { x, y, z } = magnetometer;
+    if (magReading) {
+      let { x, y, z } = magReading;
       if (Math.atan2(y, x) >= 0) {
         angle = Math.atan2(y, x) * (180 / Math.PI);
       } else {
@@ -54,8 +75,8 @@ function DirectorScreen() {
     return Math.round(angle);
   };
 
-  const calcDegree = (magnetometer) => {
-    return magnetometer - 90 >= 0 ? magnetometer - 90 : magnetometer + 271;
+  const calcDegree = (magReading) => {
+    return magReading - 90 >= 0 ? magReading - 90 : magReading + 271;
   };
 
   return (
@@ -66,6 +87,9 @@ function DirectorScreen() {
       </View>
       <Text style={styles.subtitle} >Distance:</Text>
       <Text style={styles.primary}>00.00m</Text>
+      <Pressable style={styles.refreshButton} onPress={() => {setCooldown(COOLDOWN); updateAngle()}} disabled={cooldown > 0} >
+        <Text style={cooldown > 0 ? styles.disabledButtonText : styles.buttonText}>{cooldown > 0 ? cooldown : 'Refresh'}</Text>
+      </Pressable>
     </View>
   )
 }
@@ -103,6 +127,7 @@ function PictureScreen() {
       }}
       style={{ width: 400, height: 400 }}
       />
+      <Text style={styles.questText}>This picture, pulled from Google Maps StreetView, is your visual clue of the day. The hunt is on!</Text>
     </View>
   )
 }
@@ -210,23 +235,63 @@ export default function App() {
                 iconName = focused ? 'image' : 'image-outline'
               }
 
-              return <Ionicons name={iconName} size={size} color={color} />;
+              return <Ionicons name={iconName} size={35} color={color} />;
             },
-            tabBarActiveTintColor: 'black',
-            tabBarInactiveTintColor: 'gray',
+            tabBarActiveTintColor: 'white',
+            tabBarInactiveTintColor: '#555',
+            tabBarStyle: {
+              backgroundColor: '#222',
+              borderTopWidth: 1,
+              borderTopColor: 'gray',
+              height: 70,
+            },
+            tabBarItemStyle: {
+              fontSize: 12
+            },
+            headerStyle: {
+              backgroundColor: '#222',
+              borderBottomWidth: 1,
+              borderBottomColor: 'gray',
+              height: 90
+            },
+            headerTitleStyle: {
+              color: 'white',
+              fontSize: 30,
+              textAlign: 'center',
+              fontFamily: 'Helvetica'
+            },
+            title: 'GLOBLE',
+            tabBarShowLabel: false,
           })}
         >
+        <Tab.Screen name="Clue" component={PictureScreen} 
+          options={{
+
+          }}
+        />
         <Tab.Screen name='Compass' component={DirectorScreen} 
           options={{
 
           }}
         />
-        <Tab.Screen name="Clue" component={PictureScreen} 
-          options={({ navigation }) => ({
-
-          })}
-        />
       </Tab.Navigator>
     </NavigationContainer>
   );
+}
+
+function calcDistance(u_lat, u_long, dest_lat, dest_long) {
+  return Math.sqrt((u_lat - dest_lat) * (u_lat - dest_lat) + (u_long - dest_long) * (u_long - dest_long));
+}
+
+function calcDirectionToDestination(u_lat, u_long, dest_lat, dest_long) {
+  let phi = 0;
+  let delta_x = dest_lat - u_lat;
+  let delta_y = dest_long - u_long;
+
+  if (delta_x > 0 && delta_y > 0) { phi = 0; }
+  else if (delta_x < 0 && delta_y > 0) { phi = 90; }
+  else if (delta_x < 0 && delta_y < 0) { phi = 180; }
+  else if (delta_x > 0 && delta_y < 0) { phi = 270; }
+
+  let theta = Math.atan(Math.abs(delta_y) / Math.abs(delta_x)) + phi;
 }
